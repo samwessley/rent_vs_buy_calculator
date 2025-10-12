@@ -105,7 +105,7 @@
           <h4>Closing costs</h4>
           <div class="grid two-col">
             <label class="field">
-              <span>Costs of buying home (% of loan amount)</span>
+              <span>Costs of buying home (% of price)</span>
               <input id="buyClosingPct" type="number" min="0" max="10" step="0.1" value="4">
             </label>
             <label class="field">
@@ -117,20 +117,12 @@
           <h4>Maintenance and fees</h4>
           <div class="grid two-col">
             <label class="field">
-              <span>Maintenance ($ first year)</span>
-              <input id="maintenanceInitial" type="number" min="0" step="100" value="5000">
+              <span>Maintenance/renovation (% of home value/yr)</span>
+              <input id="maintenancePct" type="number" min="0" max="10" step="0.1" value="1.0">
             </label>
             <label class="field">
-              <span>Maintenance growth (%/yr)</span>
-              <input id="maintenanceGrowthPct" type="number" min="0" max="10" step="0.1" value="1">
-            </label>
-            <label class="field">
-              <span>Homeowner's insurance ($ first year)</span>
-              <input id="homeInsuranceInitial" type="number" min="0" step="50" value="2750">
-            </label>
-            <label class="field">
-              <span>Insurance growth (%/yr)</span>
-              <input id="insuranceGrowthPct" type="number" min="0" max="10" step="0.1" value="0.55">
+              <span>Homeowner's insurance (% of home value/yr)</span>
+              <input id="homeInsurancePct" type="number" min="0" max="10" step="0.05" value="0.55">
             </label>
             <label class="field">
               <span>Extra monthly utilities ($)</span>

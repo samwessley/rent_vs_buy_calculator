@@ -31,18 +31,14 @@ function buildAmortization(principal, annualRatePct, years){
 }
 
 function computeStandardDeduction(filing){
-  // 2025 approximate standard deduction; adjust as laws change
-  // Single ~ $14,600; Married filing jointly ~ $29,200
   return filing === 'joint' ? 29200 : 14600;
 }
 
 function miDeductionCap(){
-  // Mortgage interest deduction cap on acquisition indebtedness ($750k post-TCJA)
   return 750000;
 }
 
 function saltCap(){
-  // SALT deduction cap ($10k post-TCJA)
   return 10000;
 }
 
@@ -69,10 +65,8 @@ function computeBuyVsRent(){
   const buyClosingPct = +document.getElementById('buyClosingPct').value;
   const sellClosingPct = +document.getElementById('sellClosingPct').value;
 
-  const maintenanceInitial = +document.getElementById('maintenanceInitial').value;
-  const maintenanceGrowthPct = +document.getElementById('maintenanceGrowthPct').value;
-  const homeInsuranceInitial = +document.getElementById('homeInsuranceInitial').value;
-  const insuranceGrowthPct = +document.getElementById('insuranceGrowthPct').value;
+  const maintenancePct = +document.getElementById('maintenancePct').value;
+  const homeInsurancePct = +document.getElementById('homeInsurancePct').value;
   const extraUtilitiesMonthly = +document.getElementById('extraUtilitiesMonthly').value;
   const hoaMonthly = +document.getElementById('hoaMonthly').value;
   const hoaDeductiblePct = +document.getElementById('hoaDeductiblePct').value;
@@ -83,18 +77,14 @@ function computeBuyVsRent(){
   const rentersInsuranceGrowthPct = +document.getElementById('rentersInsuranceGrowthPct').value;
   const capitalGainsRatePct = +document.getElementById('capitalGainsRatePct').value;
 
-  // Buying side
   const downPayment = homePrice * pct(downPaymentPct);
   const loanAmount = homePrice - downPayment;
-  const buyClosing = loanAmount * pct(buyClosingPct);
+  const buyClosing = homePrice * pct(buyClosingPct);
   const amort = buildAmortization(loanAmount, mortgageRate, mortgageYears);
   const months = years*12;
   const monthsConsidered = Math.min(months, amort.length);
 
-  // Property tax and insurance assumptions
   const annualPropertyTaxStart = homePrice * pct(propertyTaxRatePct);
-
-  // PMI only if downPaymentPct < 20
   const hasPMI = downPaymentPct < 20 && pmiRatePct > 0;
 
   let totalMortgagePayments = 0;
@@ -109,10 +99,12 @@ function computeBuyVsRent(){
 
   let currentHomeValue = homePrice;
   let currentAnnualPropertyTax = annualPropertyTaxStart;
-  let currentMaintenance = maintenanceInitial;
-  let currentHomeInsurance = homeInsuranceInitial;
   let currentHOAAnnual = hoaMonthly*12;
   let currentExtraUtilitiesAnnual = extraUtilitiesMonthly*12;
+
+  // Track monthly net cash flows for precise opportunity cost
+  const buyMonthlyNetCashFlows = [];
+  let accumulatedYearTaxSavings = 0;
 
   for(let m=0;m<monthsConsidered;m++){
     const row = amort[m];
@@ -120,75 +112,81 @@ function computeBuyVsRent(){
     totalMortgagePayments += row.payment;
     totalMortgageInterest += row.interest;
 
-    // annualized expenses applied monthly
     const monthIndexInYear = m % 12;
-    totalPropertyTax += currentAnnualPropertyTax/12;
-    totalMaintenance += currentMaintenance/12;
-    totalHomeInsurance += currentHomeInsurance/12;
-    totalHOAFees += currentHOAAnnual/12;
-    totalExtraUtilities += currentExtraUtilitiesAnnual/12;
+    const currentMaintenance = currentHomeValue * pct(maintenancePct);
+    const currentHomeInsurance = currentHomeValue * pct(homeInsurancePct);
+    const monthlyPropertyTax = currentAnnualPropertyTax/12;
+    const monthlyMaintenance = currentMaintenance/12;
+    const monthlyHomeInsurance = currentHomeInsurance/12;
+    const monthlyHOA = currentHOAAnnual/12;
+    const monthlyUtilities = currentExtraUtilitiesAnnual/12;
+    
+    totalPropertyTax += monthlyPropertyTax;
+    totalMaintenance += monthlyMaintenance;
+    totalHomeInsurance += monthlyHomeInsurance;
+    totalHOAFees += monthlyHOA;
+    totalExtraUtilities += monthlyUtilities;
 
-    if(hasPMI && row.remaining > loanAmount*0.8){
-      totalPMI += (loanAmount * pct(pmiRatePct))/12;
-    }
+    const monthlyPMI = (hasPMI && row.remaining > homePrice*0.8) ? (loanAmount * pct(pmiRatePct))/12 : 0;
+    totalPMI += monthlyPMI;
+
+    // Store gross monthly cash flow (before tax savings)
+    const monthlyGrossCashFlow = row.payment + monthlyPMI + monthlyPropertyTax + monthlyMaintenance + monthlyHomeInsurance + monthlyHOA + monthlyUtilities;
+    buyMonthlyNetCashFlows.push(monthlyGrossCashFlow);
 
     if(monthIndexInYear === 11){
-      // Compute per-year tax savings with SALT and mortgage interest caps
       const idxStart = m - 11;
       const idxEnd = m;
       let yearInterest = 0;
-      for(let k=idxStart;k<=idxEnd;k++){
-        yearInterest += amort[k]?.interest ?? 0;
-      }
+      for(let k=idxStart;k<=idxEnd;k++) yearInterest += amort[k]?.interest ?? 0;
       const interestCapFactor = Math.min(1, miDeductionCap() / Math.max(1, loanAmount));
       const cappedInterest = yearInterest * interestCapFactor;
-      const yearPropertyTax = currentAnnualPropertyTax;
+      const saltDeductible = Math.min(saltCap(), currentAnnualPropertyTax);
       const deductibleHOAYear = currentHOAAnnual * pct(hoaDeductiblePct);
-      const saltDeductible = Math.min(saltCap(), yearPropertyTax);
-      const potentialItemizedYear = cappedInterest + saltDeductible + deductibleHOAYear + otherItemizedDeductions;
       const stdDeductionYear = computeStandardDeduction(filingStatus);
-      const taxBenefitBaseYear = Math.max(0, potentialItemizedYear - stdDeductionYear);
+      const baseline = stdDeductionYear;
+      const potentialItemizedYear = cappedInterest + saltDeductible + deductibleHOAYear + otherItemizedDeductions;
+      const taxBenefitBaseYear = Math.max(0, potentialItemizedYear - baseline);
       const yearTaxSavings = taxBenefitBaseYear * pct(marginalTaxRatePct);
       totalTaxSavings += yearTaxSavings;
 
-      // Year end: grow values for next year
+      // Apply year's tax savings to the last month of the year
+      buyMonthlyNetCashFlows[buyMonthlyNetCashFlows.length - 1] -= yearTaxSavings;
+
       currentHomeValue *= (1 + pct(homeGrowthPct));
       currentAnnualPropertyTax = currentHomeValue * pct(propertyTaxRatePct);
-      currentMaintenance *= (1 + pct(maintenanceGrowthPct));
-      currentHomeInsurance *= (1 + pct(insuranceGrowthPct));
-      // HOA and utilities assumed flat (user sets monthly)
     }
   }
 
-  // Per-year accumulated tax savings
-  const interestTaxSavings = totalMortgageInterest * pct(marginalTaxRatePct);
-
-  // Opportunity cost of initial and recurring cash flows invested at investmentReturnPct
   function futureValueOfSeries(paymentPerPeriod, annualRatePctLocal, periods){
-    const i = pct(annualRatePctLocal)/12;
-    if(i === 0) return paymentPerPeriod * periods;
-    return paymentPerPeriod * (Math.pow(1+i, periods) - 1) / i;
+    const monthlyRate = Math.pow(1 + pct(annualRatePctLocal), 1/12) - 1;
+    if(monthlyRate === 0) return paymentPerPeriod * periods;
+    return paymentPerPeriod * (Math.pow(1+monthlyRate, periods) - 1) / monthlyRate;
   }
 
   function futureValueLumpSum(present, annualRatePctLocal, periods){
-    const i = pct(annualRatePctLocal)/12;
-    return present * Math.pow(1+i, periods);
+    const monthlyRate = Math.pow(1 + pct(annualRatePctLocal), 1/12) - 1;
+    return present * Math.pow(1+monthlyRate, periods);
   }
 
   const buyInitialCash = downPayment + buyClosing;
-  const buyRecurringMonthly = (totalMortgagePayments + totalPMI + totalPropertyTax + totalMaintenance + totalHomeInsurance + totalHOAFees + totalExtraUtilities - interestTaxSavings) / monthsConsidered;
+  const buyRecurringGross = totalMortgagePayments + totalPMI + totalPropertyTax + totalMaintenance + totalHomeInsurance + totalHOAFees + totalExtraUtilities;
 
-  // After-tax opportunity cost (tax on investment gains at capital gains rate)
+  // Compute opportunity cost from actual monthly cash flows
   const buyOppFromInitialFV = futureValueLumpSum(buyInitialCash, investmentReturnPct, monthsConsidered);
   const buyOppFromInitialEarnings = Math.max(0, buyOppFromInitialFV - buyInitialCash);
   const buyOppFromInitial = buyOppFromInitialEarnings * (1 - pct(capitalGainsRatePct));
-  const buyOppFromRecurringFV = futureValueOfSeries(buyRecurringMonthly, investmentReturnPct, monthsConsidered);
-  const buyRecurringPrincipal = buyRecurringMonthly * monthsConsidered;
-  const buyOppFromRecurringEarnings = Math.max(0, buyOppFromRecurringFV - buyRecurringPrincipal);
-  const buyOppFromRecurring = buyOppFromRecurringEarnings * (1 - pct(capitalGainsRatePct));
+  
+  let buyOppFromRecurring = 0;
+  const monthlyRate = Math.pow(1 + pct(investmentReturnPct), 1/12) - 1;
+  for(let i=0; i<buyMonthlyNetCashFlows.length; i++){
+    const monthsToGrow = monthsConsidered - i;
+    const fv = buyMonthlyNetCashFlows[i] * Math.pow(1 + monthlyRate, monthsToGrow);
+    const earnings = Math.max(0, fv - buyMonthlyNetCashFlows[i]);
+    buyOppFromRecurring += earnings * (1 - pct(capitalGainsRatePct));
+  }
   const totalBuyOpportunityCost = buyOppFromInitial + buyOppFromRecurring;
 
-  // Net proceeds on sale with capital gains tax after exclusion
   const valueAtExit = homePrice * Math.pow(1+pct(homeGrowthPct), years);
   const sellCosts = valueAtExit * pct(sellClosingPct);
   const remainingPrincipal = amort[Math.min(monthsConsidered, amort.length)-1]?.remaining ?? 0;
@@ -200,37 +198,43 @@ function computeBuyVsRent(){
   const netProceeds = rawProceeds - capGainsTax;
 
   const totalBuyInitial = buyInitialCash;
-  const totalBuyRecurring = totalMortgagePayments + totalPMI + totalPropertyTax + totalMaintenance + totalHomeInsurance + totalHOAFees + totalExtraUtilities - interestTaxSavings;
+  const totalBuyRecurring = buyRecurringGross - totalTaxSavings;
   const totalBuy = totalBuyInitial + totalBuyRecurring + totalBuyOpportunityCost - netProceeds;
 
-  // Renting side
+  // Build monthly rent cash flows
+  const rentMonthlyNetCashFlows = [];
   let rentTotalRecurring = 0;
   let rentInsuranceTotal = 0;
   let rent = monthlyRent;
   let rentersInsurance = rentersInsuranceInitial;
   for(let y=0;y<years;y++){
+    for(let m=0;m<12 && rentMonthlyNetCashFlows.length < monthsConsidered; m++){
+      rentMonthlyNetCashFlows.push(rent + rentersInsurance/12);
+    }
     rentTotalRecurring += rent*12;
     rentInsuranceTotal += rentersInsurance;
     rent *= (1 + pct(rentGrowthPct));
     rentersInsurance *= (1 + pct(rentersInsuranceGrowthPct));
   }
   const rentInitial = securityDepositInitial + (brokersFeePct>0 ? monthlyRent*12*pct(brokersFeePct) : 0);
-  const rentNetProceeds = securityDepositInitial; // deposit returned at end
+  const rentNetProceeds = securityDepositInitial;
 
-  // Renting side opportunity cost after-tax
-  const rentRecurringMonthlyAvg = (rentTotalRecurring + rentInsuranceTotal) / monthsConsidered;
+  // Compute opportunity cost from actual monthly rent cash flows
   const rentOppFromInitialFV = futureValueLumpSum(rentInitial, investmentReturnPct, monthsConsidered);
   const rentOppFromInitialEarnings = Math.max(0, rentOppFromInitialFV - rentInitial);
   const rentOppFromInitial = rentOppFromInitialEarnings * (1 - pct(capitalGainsRatePct));
-  const rentOppFromRecurringFV = futureValueOfSeries(rentRecurringMonthlyAvg, investmentReturnPct, monthsConsidered);
-  const rentRecurringPrincipal = rentRecurringMonthlyAvg * monthsConsidered;
-  const rentOppFromRecurringEarnings = Math.max(0, rentOppFromRecurringFV - rentRecurringPrincipal);
-  const rentOppFromRecurring = rentOppFromRecurringEarnings * (1 - pct(capitalGainsRatePct));
+  
+  let rentOppFromRecurring = 0;
+  for(let i=0; i<rentMonthlyNetCashFlows.length; i++){
+    const monthsToGrow = monthsConsidered - i;
+    const fv = rentMonthlyNetCashFlows[i] * Math.pow(1 + monthlyRate, monthsToGrow);
+    const earnings = Math.max(0, fv - rentMonthlyNetCashFlows[i]);
+    rentOppFromRecurring += earnings * (1 - pct(capitalGainsRatePct));
+  }
   const totalRentOpportunityCost = rentOppFromInitial + rentOppFromRecurring;
 
   const totalRent = rentInitial + rentTotalRecurring + rentInsuranceTotal + totalRentOpportunityCost - rentNetProceeds;
 
-  // Update UI
   document.getElementById('totalBuy').textContent = formatCurrency(totalBuy);
   document.getElementById('totalRent').textContent = formatCurrency(totalRent);
   const diff = Math.abs(totalBuy - totalRent);
@@ -283,5 +287,3 @@ window.addEventListener('DOMContentLoaded', ()=>{
   hookInputs();
   computeBuyVsRent();
 });
-
-
