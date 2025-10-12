@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rent vs Buy Calculator</title>
+    <meta name="description" content="An original rent vs buy calculator to compare long-run financial outcomes.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1>Rent vs Buy Calculator</h1>
+        <p class="subhead">Compare the long-run costs of buying a home versus renting with adjustable assumptions.</p>
+        <p class="disclaimer">This tool is inspired by methodology discussed by The New York Times <a href="https://www.nytimes.com/interactive/2024/upshot/buy-rent-calculator.html" target="_blank" rel="noopener noreferrer">rent vs buy calculator</a>, but is an original implementation and design and does not replicate their code or layout.</p>
+      </div>
+    </header>
+
+    <main class="container layout">
+      <section class="panel inputs">
+        <h2>The Basics</h2>
+        <div class="grid two-col">
+          <label class="field">
+            <span>Home price (if buying)</span>
+            <input id="homePrice" type="number" min="0" step="1000" value="500000">
+          </label>
+          <label class="field">
+            <span>Monthly rent (if renting)</span>
+            <input id="monthlyRent" type="number" min="0" step="50" value="2000">
+          </label>
+          <label class="field">
+            <span>How long will you stay? (years)</span>
+            <input id="years" type="number" min="1" max="50" step="1" value="10">
+          </label>
+        </div>
+
+        <h3>Mortgage Details</h3>
+        <div class="grid two-col">
+          <label class="field">
+            <span>Mortgage rate (APR, %)</span>
+            <input id="mortgageRate" type="number" min="0" max="20" step="0.01" value="6.75">
+          </label>
+          <label class="field">
+            <span>Down payment (%)</span>
+            <input id="downPaymentPct" type="number" min="0" max="100" step="1" value="20">
+          </label>
+          <label class="field">
+            <span>Mortgage length (years)</span>
+            <input id="mortgageYears" type="number" min="5" max="40" step="5" value="30">
+          </label>
+          <label class="field">
+            <span>PMI rate (%/yr)</span>
+            <input id="pmiRatePct" type="number" min="0" max="5" step="0.05" value="0">
+          </label>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced options</summary>
+          <div class="grid two-col">
+            <label class="field">
+              <span>Home price growth (%/yr)</span>
+              <input id="homeGrowthPct" type="number" min="-10" max="20" step="0.1" value="3">
+            </label>
+            <label class="field">
+              <span>Rent growth (%/yr)</span>
+              <input id="rentGrowthPct" type="number" min="-10" max="20" step="0.1" value="3">
+            </label>
+            <label class="field">
+              <span>Investment return (%/yr)</span>
+              <input id="investmentReturnPct" type="number" min="-10" max="25" step="0.1" value="4.5">
+            </label>
+            <label class="field">
+              <span>Inflation (%/yr)</span>
+              <input id="inflationPct" type="number" min="-5" max="10" step="0.1" value="3">
+            </label>
+          </div>
+
+          <h4>Taxes</h4>
+          <div class="grid two-col">
+            <label class="field">
+              <span>Filing</span>
+              <select id="filingStatus">
+                <option value="single">Individual return</option>
+                <option value="joint">Joint return</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Property tax rate (% of home value)</span>
+              <input id="propertyTaxRatePct" type="number" min="0" max="10" step="0.05" value="1.35">
+            </label>
+            <label class="field">
+              <span>Marginal tax rate (%)</span>
+              <input id="marginalTaxRatePct" type="number" min="0" max="50" step="1" value="20">
+            </label>
+            <label class="field">
+              <span>Other itemized deductions ($/yr)</span>
+              <input id="otherItemizedDeductions" type="number" min="0" step="500" value="0">
+            </label>
+            <label class="field">
+              <span>Capital gains tax rate (%)</span>
+              <input id="capitalGainsRatePct" type="number" min="0" max="30" step="0.5" value="15">
+            </label>
+          </div>
+
+          <h4>Closing costs</h4>
+          <div class="grid two-col">
+            <label class="field">
+              <span>Costs of buying home (% of loan amount)</span>
+              <input id="buyClosingPct" type="number" min="0" max="10" step="0.1" value="4">
+            </label>
+            <label class="field">
+              <span>Costs of selling home (% of sale price)</span>
+              <input id="sellClosingPct" type="number" min="0" max="10" step="0.1" value="6">
+            </label>
+          </div>
+
+          <h4>Maintenance and fees</h4>
+          <div class="grid two-col">
+            <label class="field">
+              <span>Maintenance ($ first year)</span>
+              <input id="maintenanceInitial" type="number" min="0" step="100" value="5000">
+            </label>
+            <label class="field">
+              <span>Maintenance growth (%/yr)</span>
+              <input id="maintenanceGrowthPct" type="number" min="0" max="10" step="0.1" value="1">
+            </label>
+            <label class="field">
+              <span>Homeowner's insurance ($ first year)</span>
+              <input id="homeInsuranceInitial" type="number" min="0" step="50" value="2750">
+            </label>
+            <label class="field">
+              <span>Insurance growth (%/yr)</span>
+              <input id="insuranceGrowthPct" type="number" min="0" max="10" step="0.1" value="0.55">
+            </label>
+            <label class="field">
+              <span>Extra monthly utilities ($)</span>
+              <input id="extraUtilitiesMonthly" type="number" min="0" step="10" value="100">
+            </label>
+            <label class="field">
+              <span>Monthly common/HOA fees ($)</span>
+              <input id="hoaMonthly" type="number" min="0" step="10" value="0">
+            </label>
+            <label class="field">
+              <span>Common fees deductible (%)</span>
+              <input id="hoaDeductiblePct" type="number" min="0" max="100" step="1" value="0">
+            </label>
+          </div>
+
+          <h4>Additional renting costs</h4>
+          <div class="grid two-col">
+            <label class="field">
+              <span>Security deposit ($ first year)</span>
+              <input id="securityDepositInitial" type="number" min="0" step="50" value="2000">
+            </label>
+            <label class="field">
+              <span>Broker's fee (% of annual rent)</span>
+              <input id="brokersFeePct" type="number" min="0" max="50" step="1" value="0">
+            </label>
+            <label class="field">
+              <span>Renter's insurance ($ first year)</span>
+              <input id="rentersInsuranceInitial" type="number" min="0" step="25" value="240">
+            </label>
+            <label class="field">
+              <span>Renter insurance growth (%/yr)</span>
+              <input id="rentersInsuranceGrowthPct" type="number" min="0" max="10" step="0.1" value="1">
+            </label>
+          </div>
+        </details>
+      </section>
+
+      <section class="panel results">
+        <h2>Results</h2>
+        <div class="result-summary">
+          <div>
+            <div class="label">Total cost: Buy</div>
+            <div id="totalBuy" class="value">—</div>
+          </div>
+          <div>
+            <div class="label">Total cost: Rent</div>
+            <div id="totalRent" class="value">—</div>
+          </div>
+          <div>
+            <div class="label accent" id="winnerLabel">—</div>
+            <div id="difference" class="value accent">—</div>
+          </div>
+        </div>
+
+        <div class="breakdown">
+          <h3>Buying breakdown</h3>
+          <ul id="buyBreakdown"></ul>
+
+          <h3>Renting breakdown</h3>
+          <ul id="rentBreakdown"></ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer container">
+      <p>For educational purposes only. This tool simplifies many factors and is not financial advice.</p>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>
+
+
