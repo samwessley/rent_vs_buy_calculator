@@ -42,50 +42,48 @@ function saltCap(){
   return 10000;
 }
 
-function computeBuyVsRent(){
-  const homePrice = +document.getElementById('homePrice').value;
-  const monthlyRent = +document.getElementById('monthlyRent').value;
-  const years = +document.getElementById('years').value;
+function readInputs(){
+  return {
+    homePrice: +document.getElementById('homePrice').value,
+    monthlyRent: +document.getElementById('monthlyRent').value,
+    years: +document.getElementById('years').value,
+    mortgageRate: +document.getElementById('mortgageRate').value,
+    downPaymentPct: +document.getElementById('downPaymentPct').value,
+    mortgageYears: +document.getElementById('mortgageYears').value,
+    pmiRatePct: +document.getElementById('pmiRatePct').value,
+    homeGrowthPct: +document.getElementById('homeGrowthPct').value,
+    rentGrowthPct: +document.getElementById('rentGrowthPct').value,
+    investmentReturnPct: +document.getElementById('investmentReturnPct').value,
+    inflationPct: +document.getElementById('inflationPct').value,
+    filingStatus: document.getElementById('filingStatus').value,
+    propertyTaxRatePct: +document.getElementById('propertyTaxRatePct').value,
+    marginalTaxRatePct: +document.getElementById('marginalTaxRatePct').value,
+    otherItemizedDeductions: +document.getElementById('otherItemizedDeductions').value,
+    buyClosingPct: +document.getElementById('buyClosingPct').value,
+    sellClosingPct: +document.getElementById('sellClosingPct').value,
+    maintenancePct: +document.getElementById('maintenancePct').value,
+    homeInsurancePct: +document.getElementById('homeInsurancePct').value,
+    extraUtilitiesMonthly: +document.getElementById('extraUtilitiesMonthly').value,
+    hoaMonthly: +document.getElementById('hoaMonthly').value,
+    hoaDeductiblePct: +document.getElementById('hoaDeductiblePct').value,
+    securityDepositInitial: +document.getElementById('securityDepositInitial').value,
+    brokersFeePct: +document.getElementById('brokersFeePct').value,
+    rentersInsuranceInitial: +document.getElementById('rentersInsuranceInitial').value,
+    rentersInsuranceGrowthPct: +document.getElementById('rentersInsuranceGrowthPct').value,
+    capitalGainsRatePct: +document.getElementById('capitalGainsRatePct').value,
+  };
+}
 
-  const mortgageRate = +document.getElementById('mortgageRate').value;
-  const downPaymentPct = +document.getElementById('downPaymentPct').value;
-  const mortgageYears = +document.getElementById('mortgageYears').value;
-  const pmiRatePct = +document.getElementById('pmiRatePct').value;
-
-  const homeGrowthPct = +document.getElementById('homeGrowthPct').value;
-  const rentGrowthPct = +document.getElementById('rentGrowthPct').value;
-  const investmentReturnPct = +document.getElementById('investmentReturnPct').value;
-  const inflationPct = +document.getElementById('inflationPct').value;
-
-  const filingStatus = document.getElementById('filingStatus').value;
-  const propertyTaxRatePct = +document.getElementById('propertyTaxRatePct').value;
-  const marginalTaxRatePct = +document.getElementById('marginalTaxRatePct').value;
-  const otherItemizedDeductions = +document.getElementById('otherItemizedDeductions').value;
-
-  const buyClosingPct = +document.getElementById('buyClosingPct').value;
-  const sellClosingPct = +document.getElementById('sellClosingPct').value;
-
-  const maintenancePct = +document.getElementById('maintenancePct').value;
-  const homeInsurancePct = +document.getElementById('homeInsurancePct').value;
-  const extraUtilitiesMonthly = +document.getElementById('extraUtilitiesMonthly').value;
-  const hoaMonthly = +document.getElementById('hoaMonthly').value;
-  const hoaDeductiblePct = +document.getElementById('hoaDeductiblePct').value;
-
-  const securityDepositInitial = +document.getElementById('securityDepositInitial').value;
-  const brokersFeePct = +document.getElementById('brokersFeePct').value;
-  const rentersInsuranceInitial = +document.getElementById('rentersInsuranceInitial').value;
-  const rentersInsuranceGrowthPct = +document.getElementById('rentersInsuranceGrowthPct').value;
-  const capitalGainsRatePct = +document.getElementById('capitalGainsRatePct').value;
-
-  const downPayment = homePrice * pct(downPaymentPct);
-  const loanAmount = homePrice - downPayment;
-  const buyClosing = homePrice * pct(buyClosingPct);
-  const amort = buildAmortization(loanAmount, mortgageRate, mortgageYears);
-  const months = years*12;
+function computeTotals(s){
+  const downPayment = s.homePrice * pct(s.downPaymentPct);
+  const loanAmount = s.homePrice - downPayment;
+  const buyClosing = s.homePrice * pct(s.buyClosingPct);
+  const amort = buildAmortization(loanAmount, s.mortgageRate, s.mortgageYears);
+  const months = s.years*12;
   const monthsConsidered = Math.min(months, amort.length);
 
-  const annualPropertyTaxStart = homePrice * pct(propertyTaxRatePct);
-  const hasPMI = downPaymentPct < 20 && pmiRatePct > 0;
+  const annualPropertyTaxStart = s.homePrice * pct(s.propertyTaxRatePct);
+  const hasPMI = s.downPaymentPct < 20 && s.pmiRatePct > 0;
 
   let totalMortgagePayments = 0;
   let totalMortgageInterest = 0;
@@ -97,15 +95,12 @@ function computeBuyVsRent(){
   let totalExtraUtilities = 0;
   let totalTaxSavings = 0;
 
-  let currentHomeValue = homePrice;
+  let currentHomeValue = s.homePrice;
   let currentAnnualPropertyTax = annualPropertyTaxStart;
-  let currentHOAAnnual = hoaMonthly*12;
-  let currentExtraUtilitiesAnnual = extraUtilitiesMonthly*12;
+  let currentHOAAnnual = s.hoaMonthly*12;
+  let currentExtraUtilitiesAnnual = s.extraUtilitiesMonthly*12;
 
-  // Track monthly net cash flows for precise opportunity cost
   const buyMonthlyNetCashFlows = [];
-  let accumulatedYearTaxSavings = 0;
-
   for(let m=0;m<monthsConsidered;m++){
     const row = amort[m];
     if(!row) break;
@@ -113,24 +108,23 @@ function computeBuyVsRent(){
     totalMortgageInterest += row.interest;
 
     const monthIndexInYear = m % 12;
-    const currentMaintenance = currentHomeValue * pct(maintenancePct);
-    const currentHomeInsurance = currentHomeValue * pct(homeInsurancePct);
+    const currentMaintenance = currentHomeValue * pct(s.maintenancePct);
+    const currentHomeInsurance = currentHomeValue * pct(s.homeInsurancePct);
     const monthlyPropertyTax = currentAnnualPropertyTax/12;
     const monthlyMaintenance = currentMaintenance/12;
     const monthlyHomeInsurance = currentHomeInsurance/12;
     const monthlyHOA = currentHOAAnnual/12;
     const monthlyUtilities = currentExtraUtilitiesAnnual/12;
-    
+
     totalPropertyTax += monthlyPropertyTax;
     totalMaintenance += monthlyMaintenance;
     totalHomeInsurance += monthlyHomeInsurance;
     totalHOAFees += monthlyHOA;
     totalExtraUtilities += monthlyUtilities;
 
-    const monthlyPMI = (hasPMI && row.remaining > homePrice*0.8) ? (loanAmount * pct(pmiRatePct))/12 : 0;
+    const monthlyPMI = (hasPMI && row.remaining > s.homePrice*0.8) ? (loanAmount * pct(s.pmiRatePct))/12 : 0;
     totalPMI += monthlyPMI;
 
-    // Store gross monthly cash flow (before tax savings)
     const monthlyGrossCashFlow = row.payment + monthlyPMI + monthlyPropertyTax + monthlyMaintenance + monthlyHomeInsurance + monthlyHOA + monthlyUtilities;
     buyMonthlyNetCashFlows.push(monthlyGrossCashFlow);
 
@@ -142,120 +136,113 @@ function computeBuyVsRent(){
       const interestCapFactor = Math.min(1, miDeductionCap() / Math.max(1, loanAmount));
       const cappedInterest = yearInterest * interestCapFactor;
       const saltDeductible = Math.min(saltCap(), currentAnnualPropertyTax);
-      const deductibleHOAYear = currentHOAAnnual * pct(hoaDeductiblePct);
-      const stdDeductionYear = computeStandardDeduction(filingStatus);
+      const deductibleHOAYear = currentHOAAnnual * pct(s.hoaDeductiblePct);
+      const stdDeductionYear = computeStandardDeduction(s.filingStatus);
       const baseline = stdDeductionYear;
-      const potentialItemizedYear = cappedInterest + saltDeductible + deductibleHOAYear + otherItemizedDeductions;
+      const potentialItemizedYear = cappedInterest + saltDeductible + deductibleHOAYear + s.otherItemizedDeductions;
       const taxBenefitBaseYear = Math.max(0, potentialItemizedYear - baseline);
-      const yearTaxSavings = taxBenefitBaseYear * pct(marginalTaxRatePct);
+      const yearTaxSavings = taxBenefitBaseYear * pct(s.marginalTaxRatePct);
       totalTaxSavings += yearTaxSavings;
-
-      // Apply year's tax savings to the last month of the year
       buyMonthlyNetCashFlows[buyMonthlyNetCashFlows.length - 1] -= yearTaxSavings;
 
-      currentHomeValue *= (1 + pct(homeGrowthPct));
-      currentAnnualPropertyTax = currentHomeValue * pct(propertyTaxRatePct);
+      currentHomeValue *= (1 + pct(s.homeGrowthPct));
+      currentAnnualPropertyTax = currentHomeValue * pct(s.propertyTaxRatePct);
     }
   }
 
-  function futureValueOfSeries(paymentPerPeriod, annualRatePctLocal, periods){
-    const monthlyRate = Math.pow(1 + pct(annualRatePctLocal), 1/12) - 1;
-    if(monthlyRate === 0) return paymentPerPeriod * periods;
-    return paymentPerPeriod * (Math.pow(1+monthlyRate, periods) - 1) / monthlyRate;
-  }
-
-  function futureValueLumpSum(present, annualRatePctLocal, periods){
-    const monthlyRate = Math.pow(1 + pct(annualRatePctLocal), 1/12) - 1;
-    return present * Math.pow(1+monthlyRate, periods);
-  }
-
   const buyInitialCash = downPayment + buyClosing;
-  const buyRecurringGross = totalMortgagePayments + totalPMI + totalPropertyTax + totalMaintenance + totalHomeInsurance + totalHOAFees + totalExtraUtilities;
-
-  // Compute opportunity cost from actual monthly cash flows
-  const buyOppFromInitialFV = futureValueLumpSum(buyInitialCash, investmentReturnPct, monthsConsidered);
+  const monthlyRate = Math.pow(1 + pct(s.investmentReturnPct), 1/12) - 1;
+  const buyOppFromInitialFV = buyInitialCash * Math.pow(1 + monthlyRate, monthsConsidered);
   const buyOppFromInitialEarnings = Math.max(0, buyOppFromInitialFV - buyInitialCash);
-  const buyOppFromInitial = buyOppFromInitialEarnings * (1 - pct(capitalGainsRatePct));
-  
+  const buyOppFromInitial = buyOppFromInitialEarnings * (1 - pct(s.capitalGainsRatePct));
   let buyOppFromRecurring = 0;
-  const monthlyRate = Math.pow(1 + pct(investmentReturnPct), 1/12) - 1;
   for(let i=0; i<buyMonthlyNetCashFlows.length; i++){
     const monthsToGrow = monthsConsidered - i;
     const fv = buyMonthlyNetCashFlows[i] * Math.pow(1 + monthlyRate, monthsToGrow);
     const earnings = Math.max(0, fv - buyMonthlyNetCashFlows[i]);
-    buyOppFromRecurring += earnings * (1 - pct(capitalGainsRatePct));
+    buyOppFromRecurring += earnings * (1 - pct(s.capitalGainsRatePct));
   }
   const totalBuyOpportunityCost = buyOppFromInitial + buyOppFromRecurring;
 
-  const valueAtExit = homePrice * Math.pow(1+pct(homeGrowthPct), years);
-  const sellCosts = valueAtExit * pct(sellClosingPct);
+  const valueAtExit = s.homePrice * Math.pow(1+pct(s.homeGrowthPct), s.years);
+  const sellCosts = valueAtExit * pct(s.sellClosingPct);
   const remainingPrincipal = amort[Math.min(monthsConsidered, amort.length)-1]?.remaining ?? 0;
   const rawProceeds = valueAtExit - sellCosts - remainingPrincipal;
-  const exclusion = (filingStatus === 'joint') ? 500000 : 250000;
-  const gain = Math.max(0, valueAtExit - homePrice - sellCosts);
+  const exclusion = (s.filingStatus === 'joint') ? 500000 : 250000;
+  const gain = Math.max(0, valueAtExit - s.homePrice - sellCosts);
   const taxableGain = Math.max(0, gain - exclusion);
-  const capGainsTax = taxableGain * pct(capitalGainsRatePct);
+  const capGainsTax = taxableGain * pct(s.capitalGainsRatePct);
   const netProceeds = rawProceeds - capGainsTax;
 
   const totalBuyInitial = buyInitialCash;
-  const totalBuyRecurring = buyRecurringGross - totalTaxSavings;
+  const totalBuyRecurring = (totalMortgagePayments + totalPMI + totalPropertyTax + totalMaintenance + totalHomeInsurance + totalHOAFees + totalExtraUtilities) - totalTaxSavings;
   const totalBuy = totalBuyInitial + totalBuyRecurring + totalBuyOpportunityCost - netProceeds;
 
-  // Build monthly rent cash flows
+  // Rent side
   const rentMonthlyNetCashFlows = [];
   let rentTotalRecurring = 0;
   let rentInsuranceTotal = 0;
-  let rent = monthlyRent;
-  let rentersInsurance = rentersInsuranceInitial;
-  for(let y=0;y<years;y++){
+  let rent = s.monthlyRent;
+  let rentersInsurance = s.rentersInsuranceInitial;
+  for(let y=0;y<s.years;y++){
     for(let m=0;m<12 && rentMonthlyNetCashFlows.length < monthsConsidered; m++){
       rentMonthlyNetCashFlows.push(rent + rentersInsurance/12);
     }
     rentTotalRecurring += rent*12;
     rentInsuranceTotal += rentersInsurance;
-    rent *= (1 + pct(rentGrowthPct));
-    rentersInsurance *= (1 + pct(rentersInsuranceGrowthPct));
+    rent *= (1 + pct(s.rentGrowthPct));
+    rentersInsurance *= (1 + pct(s.rentersInsuranceGrowthPct));
   }
-  const rentInitial = securityDepositInitial + (brokersFeePct>0 ? monthlyRent*12*pct(brokersFeePct) : 0);
-  const rentNetProceeds = securityDepositInitial;
+  const rentInitial = s.securityDepositInitial + (s.brokersFeePct>0 ? s.monthlyRent*12*pct(s.brokersFeePct) : 0);
+  const rentNetProceeds = s.securityDepositInitial;
 
-  // Compute opportunity cost from actual monthly rent cash flows
-  const rentOppFromInitialFV = futureValueLumpSum(rentInitial, investmentReturnPct, monthsConsidered);
+  const rentOppFromInitialFV = rentInitial * Math.pow(1 + monthlyRate, monthsConsidered);
   const rentOppFromInitialEarnings = Math.max(0, rentOppFromInitialFV - rentInitial);
-  const rentOppFromInitial = rentOppFromInitialEarnings * (1 - pct(capitalGainsRatePct));
-  
+  const rentOppFromInitial = rentOppFromInitialEarnings * (1 - pct(s.capitalGainsRatePct));
   let rentOppFromRecurring = 0;
   for(let i=0; i<rentMonthlyNetCashFlows.length; i++){
     const monthsToGrow = monthsConsidered - i;
     const fv = rentMonthlyNetCashFlows[i] * Math.pow(1 + monthlyRate, monthsToGrow);
     const earnings = Math.max(0, fv - rentMonthlyNetCashFlows[i]);
-    rentOppFromRecurring += earnings * (1 - pct(capitalGainsRatePct));
+    rentOppFromRecurring += earnings * (1 - pct(s.capitalGainsRatePct));
   }
   const totalRentOpportunityCost = rentOppFromInitial + rentOppFromRecurring;
-
   const totalRent = rentInitial + rentTotalRecurring + rentInsuranceTotal + totalRentOpportunityCost - rentNetProceeds;
 
-  document.getElementById('totalBuy').textContent = formatCurrency(totalBuy);
-  document.getElementById('totalRent').textContent = formatCurrency(totalRent);
-  const diff = Math.abs(totalBuy - totalRent);
-  const winner = totalBuy < totalRent ? 'Buying is better' : 'Renting is better';
-  document.getElementById('winnerLabel').textContent = winner;
-  document.getElementById('difference').textContent = `${formatCurrency(diff)} over ${years} years`;
+  return {
+    totalBuy, totalRent,
+    totalBuyInitial, totalBuyRecurring, totalBuyOpportunityCost, netProceeds,
+    rentInitial, rentRecurring: (rentTotalRecurring + rentInsuranceTotal), totalRentOpportunityCost, rentNetProceeds
+  };
+}
+
+// Refactor computeBuyVsRent to use computeTotals
+function computeBuyVsRent(){
+  const s = readInputs();
+  const r = computeTotals(s);
+
+  // Update summary winner only
+  const diff = Math.abs(r.totalBuy - r.totalRent);
+  const buyingBetter = r.totalBuy < r.totalRent;
+  const headline = buyingBetter ? 'Buying is better.' : 'Renting is better.';
+  const saver = buyingBetter ? 'Buying' : 'Renting';
+  document.getElementById('winnerLabel').textContent = headline;
+  document.getElementById('difference').textContent = `${saver} saves you ${formatCurrency(diff)} over ${s.years} years`;
 
   const buyBreakdown = [
-    {name:'Initial costs (down + closing)', amount: totalBuyInitial},
-    {name:'Recurring costs (all-in, after tax)', amount: totalBuyRecurring},
-    {name:'Opportunity costs', amount: totalBuyOpportunityCost},
-    {name:'Net proceeds on sale', amount: -netProceeds}
+    {name:'Initial costs (down + closing)', amount: r.totalBuyInitial},
+    {name:'Recurring costs (all-in, after tax)', amount: r.totalBuyRecurring},
+    {name:'Opportunity costs', amount: r.totalBuyOpportunityCost},
+    {name:'Net proceeds on sale', amount: -r.netProceeds}
   ];
   const rentBreakdown = [
-    {name:'Initial costs (deposit + broker)', amount: rentInitial},
-    {name:'Recurring costs (rent + insurance)', amount: rentTotalRecurring + rentInsuranceTotal},
-    {name:'Opportunity costs', amount: totalRentOpportunityCost},
-    {name:'Net proceeds (deposit return)', amount: -rentNetProceeds}
+    {name:'Initial costs (deposit + broker)', amount: r.rentInitial},
+    {name:'Recurring costs (rent + insurance)', amount: r.rentRecurring},
+    {name:'Opportunity costs', amount: r.totalRentOpportunityCost},
+    {name:'Net proceeds (deposit return)', amount: -r.rentNetProceeds}
   ];
 
-  function renderList(elId, items){
+  function renderList(elId, items, totalLabel, totalAmount){
     const ul = document.getElementById(elId);
     ul.innerHTML='';
     items.forEach(it=>{
@@ -270,17 +257,144 @@ function computeBuyVsRent(){
       li.appendChild(amount);
       ul.appendChild(li);
     });
+    // Total row
+    const totalLi = document.createElement('li');
+    totalLi.className = 'total-row';
+    const totalName = document.createElement('span');
+    totalName.textContent = totalLabel;
+    const totalAmt = document.createElement('span');
+    totalAmt.textContent = formatCurrency(totalAmount);
+    totalLi.appendChild(totalName);
+    totalLi.appendChild(totalAmt);
+    ul.appendChild(totalLi);
   }
-  renderList('buyBreakdown', buyBreakdown);
-  renderList('rentBreakdown', rentBreakdown);
+  renderList('buyBreakdown', buyBreakdown, 'Total cost: Buy', r.totalBuy);
+  renderList('rentBreakdown', rentBreakdown, 'Total cost: Rent', r.totalRent);
+}
+
+function updateSliderGradient(slider, targetId){
+  const min = +slider.min;
+  const max = +slider.max;
+  const stepAttr = parseFloat(slider.step) || 0;
+  const sampleCount = 60;
+  const dx = (max - min) / sampleCount;
+
+  // Helper to snap to slider step and integer where appropriate
+  function snap(val){
+    if(stepAttr > 0){
+      val = Math.round(val / stepAttr) * stepAttr;
+    }
+    // Force integers for whole-number sliders
+    if(targetId === 'years' || targetId === 'mortgageYears' || targetId === 'downPaymentPct' || targetId === 'marginalTaxRatePct' || targetId === 'hoaDeductiblePct'){
+      val = Math.round(val);
+    }
+    return Math.min(max, Math.max(min, +val.toFixed(4)));
+  }
+
+  // Build contiguous color ranges
+  const ranges = [];
+  let currentColor = null;
+  let rangeStartPct = 0;
+
+  for(let i=0;i<=sampleCount;i++){
+    const raw = min + dx * i;
+    const v = snap(raw);
+    const totals = computeTotalAtValue(targetId, v);
+    const isBuyingBetter = totals.buy < totals.rent;
+    const color = isBuyingBetter ? '#7c3aed' : '#2563eb';
+    const pct = (i / sampleCount) * 100;
+
+    if(currentColor === null){
+      currentColor = color;
+      rangeStartPct = pct;
+    }else if(color !== currentColor){
+      ranges.push({color: currentColor, start: rangeStartPct, end: pct});
+      currentColor = color;
+      rangeStartPct = pct;
+    }
+  }
+  // Close last range
+  if(currentColor !== null){
+    ranges.push({color: currentColor, start: rangeStartPct, end: 100});
+  }
+
+  const gradientStops = [];
+  ranges.forEach(r=>{
+    gradientStops.push(`${r.color} ${r.start}%`, `${r.color} ${r.end}%`);
+  });
+
+  slider.style.background = `linear-gradient(to right, ${gradientStops.join(', ')})`;
+}
+
+function updateAllSliderGradients(){
+  const sliders = document.querySelectorAll('input[type="range"].slider');
+  sliders.forEach(slider=>{
+    const targetId = slider.getAttribute('data-target');
+    if(targetId){
+      updateSliderGradient(slider, targetId);
+    }
+  });
 }
 
 function hookInputs(){
-  const inputs = document.querySelectorAll('input, select');
+  const inputs = document.querySelectorAll('input[type="number"], select');
   inputs.forEach(el=>{
-    el.addEventListener('input', computeBuyVsRent);
-    el.addEventListener('change', computeBuyVsRent);
+    el.addEventListener('input', ()=>{
+      computeBuyVsRent();
+      updateAllSliderGradients();
+    });
+    el.addEventListener('change', ()=>{
+      computeBuyVsRent();
+      updateAllSliderGradients();
+    });
   });
+
+  // Sync sliders with number inputs
+  const sliders = document.querySelectorAll('input[type="range"].slider');
+  sliders.forEach(slider=>{
+    const targetId = slider.getAttribute('data-target');
+    const targetInput = document.getElementById(targetId);
+    
+    if(targetInput){
+      // Slider changes number input
+      slider.addEventListener('input', ()=>{
+        targetInput.value = slider.value;
+        computeBuyVsRent();
+        updateAllSliderGradients();
+      });
+      
+      // Number input changes slider
+      targetInput.addEventListener('input', ()=>{
+        const val = +targetInput.value;
+        const sliderMin = +slider.min;
+        const sliderMax = +slider.max;
+        if(val >= sliderMin && val <= sliderMax){
+          slider.value = val;
+        }
+      });
+    }
+  });
+  
+  // Initialize gradients
+  updateAllSliderGradients();
+}
+
+function computeTotalAtValue(inputId, testValue){
+  const s = readInputs();
+  s[inputId] = (typeof s[inputId] === 'string') ? String(testValue) : +testValue;
+  const r = computeTotals(s);
+  return { buy: r.totalBuy, rent: r.totalRent };
+}
+
+function autoshrink(el, maxFontPx){
+  const parentWidth = el.parentElement.clientWidth;
+  let size = maxFontPx;
+  el.style.fontSize = size + 'px';
+  el.style.whiteSpace = 'nowrap';
+  while(el.scrollWidth > parentWidth && size > 14){
+    size -= 1;
+    el.style.fontSize = size + 'px';
+  }
 }
 
 window.addEventListener('DOMContentLoaded', ()=>{

@@ -12,7 +12,6 @@
       <div class="container">
         <h1>Rent vs Buy Calculator</h1>
         <p class="subhead">Compare the long-run costs of buying a home versus renting with adjustable assumptions.</p>
-        <p class="disclaimer">This tool is inspired by methodology discussed by The New York Times <a href="https://www.nytimes.com/interactive/2024/upshot/buy-rent-calculator.html" target="_blank" rel="noopener noreferrer">rent vs buy calculator</a>, but is an original implementation and design and does not replicate their code or layout.</p>
       </div>
     </header>
 
@@ -22,15 +21,24 @@
         <div class="grid two-col">
           <label class="field">
             <span>Home price (if buying)</span>
-            <input id="homePrice" type="number" min="0" step="1000" value="500000">
+            <div class="input-group">
+              <input id="homePrice" type="number" min="0" step="1000" value="500000">
+              <input type="range" min="100000" max="2000000" step="10000" value="500000" class="slider" data-target="homePrice">
+            </div>
           </label>
           <label class="field">
             <span>Monthly rent (if renting)</span>
-            <input id="monthlyRent" type="number" min="0" step="50" value="2000">
+            <div class="input-group">
+              <input id="monthlyRent" type="number" min="0" step="50" value="2000">
+              <input type="range" min="500" max="10000" step="50" value="2000" class="slider" data-target="monthlyRent">
+            </div>
           </label>
           <label class="field">
             <span>How long will you stay? (years)</span>
-            <input id="years" type="number" min="1" max="50" step="1" value="10">
+            <div class="input-group">
+              <input id="years" type="number" min="1" max="50" step="1" value="10">
+              <input type="range" min="1" max="40" step="1" value="10" class="slider" data-target="years">
+            </div>
           </label>
         </div>
 
@@ -38,19 +46,31 @@
         <div class="grid two-col">
           <label class="field">
             <span>Mortgage rate (APR, %)</span>
-            <input id="mortgageRate" type="number" min="0" max="20" step="0.01" value="6.75">
+            <div class="input-group">
+              <input id="mortgageRate" type="number" min="0" max="20" step="0.01" value="6.75">
+              <input type="range" min="0" max="15" step="0.05" value="6.75" class="slider" data-target="mortgageRate">
+            </div>
           </label>
           <label class="field">
             <span>Down payment (%)</span>
-            <input id="downPaymentPct" type="number" min="0" max="100" step="1" value="20">
+            <div class="input-group">
+              <input id="downPaymentPct" type="number" min="0" max="100" step="1" value="20">
+              <input type="range" min="0" max="100" step="1" value="20" class="slider" data-target="downPaymentPct">
+            </div>
           </label>
           <label class="field">
             <span>Mortgage length (years)</span>
-            <input id="mortgageYears" type="number" min="5" max="40" step="5" value="30">
+            <div class="input-group">
+              <input id="mortgageYears" type="number" min="5" max="40" step="5" value="30">
+              <input type="range" min="10" max="40" step="5" value="30" class="slider" data-target="mortgageYears">
+            </div>
           </label>
           <label class="field">
             <span>PMI rate (%/yr)</span>
-            <input id="pmiRatePct" type="number" min="0" max="5" step="0.05" value="0">
+            <div class="input-group">
+              <input id="pmiRatePct" type="number" min="0" max="5" step="0.05" value="0">
+              <input type="range" min="0" max="2" step="0.05" value="0" class="slider" data-target="pmiRatePct">
+            </div>
           </label>
         </div>
 
@@ -59,19 +79,31 @@
           <div class="grid two-col">
             <label class="field">
               <span>Home price growth (%/yr)</span>
-              <input id="homeGrowthPct" type="number" min="-10" max="20" step="0.1" value="3">
+              <div class="input-group">
+                <input id="homeGrowthPct" type="number" min="-10" max="20" step="0.1" value="3">
+                <input type="range" min="-5" max="15" step="0.1" value="3" class="slider" data-target="homeGrowthPct">
+              </div>
             </label>
             <label class="field">
               <span>Rent growth (%/yr)</span>
-              <input id="rentGrowthPct" type="number" min="-10" max="20" step="0.1" value="3">
+              <div class="input-group">
+                <input id="rentGrowthPct" type="number" min="-10" max="20" step="0.1" value="3">
+                <input type="range" min="-5" max="15" step="0.1" value="3" class="slider" data-target="rentGrowthPct">
+              </div>
             </label>
             <label class="field">
               <span>Investment return (%/yr)</span>
-              <input id="investmentReturnPct" type="number" min="-10" max="25" step="0.1" value="4.5">
+              <div class="input-group">
+                <input id="investmentReturnPct" type="number" min="-10" max="25" step="0.1" value="4.5">
+                <input type="range" min="-5" max="20" step="0.1" value="4.5" class="slider" data-target="investmentReturnPct">
+              </div>
             </label>
             <label class="field">
               <span>Inflation (%/yr)</span>
-              <input id="inflationPct" type="number" min="-5" max="10" step="0.1" value="3">
+              <div class="input-group">
+                <input id="inflationPct" type="number" min="-5" max="10" step="0.1" value="3">
+                <input type="range" min="0" max="10" step="0.1" value="3" class="slider" data-target="inflationPct">
+              </div>
             </label>
           </div>
 
@@ -86,19 +118,31 @@
             </label>
             <label class="field">
               <span>Property tax rate (% of home value)</span>
-              <input id="propertyTaxRatePct" type="number" min="0" max="10" step="0.05" value="1.35">
+              <div class="input-group">
+                <input id="propertyTaxRatePct" type="number" min="0" max="10" step="0.05" value="1.35">
+                <input type="range" min="0" max="8" step="0.05" value="1.35" class="slider" data-target="propertyTaxRatePct">
+              </div>
             </label>
             <label class="field">
               <span>Marginal tax rate (%)</span>
-              <input id="marginalTaxRatePct" type="number" min="0" max="50" step="1" value="20">
+              <div class="input-group">
+                <input id="marginalTaxRatePct" type="number" min="0" max="50" step="1" value="20">
+                <input type="range" min="0" max="50" step="1" value="20" class="slider" data-target="marginalTaxRatePct">
+              </div>
             </label>
             <label class="field">
               <span>Other itemized deductions ($/yr)</span>
-              <input id="otherItemizedDeductions" type="number" min="0" step="500" value="0">
+              <div class="input-group">
+                <input id="otherItemizedDeductions" type="number" min="0" step="500" value="0">
+                <input type="range" min="0" max="60000" step="500" value="0" class="slider" data-target="otherItemizedDeductions">
+              </div>
             </label>
             <label class="field">
               <span>Capital gains tax rate (%)</span>
-              <input id="capitalGainsRatePct" type="number" min="0" max="30" step="0.5" value="15">
+              <div class="input-group">
+                <input id="capitalGainsRatePct" type="number" min="0" max="30" step="0.5" value="15">
+                <input type="range" min="0" max="30" step="0.5" value="15" class="slider" data-target="capitalGainsRatePct">
+              </div>
             </label>
           </div>
 
@@ -106,11 +150,17 @@
           <div class="grid two-col">
             <label class="field">
               <span>Costs of buying home (% of price)</span>
-              <input id="buyClosingPct" type="number" min="0" max="10" step="0.1" value="4">
+              <div class="input-group">
+                <input id="buyClosingPct" type="number" min="0" max="10" step="0.1" value="4">
+                <input type="range" min="0" max="10" step="0.1" value="4" class="slider" data-target="buyClosingPct">
+              </div>
             </label>
             <label class="field">
               <span>Costs of selling home (% of sale price)</span>
-              <input id="sellClosingPct" type="number" min="0" max="10" step="0.1" value="6">
+              <div class="input-group">
+                <input id="sellClosingPct" type="number" min="0" max="10" step="0.1" value="6">
+                <input type="range" min="0" max="10" step="0.1" value="6" class="slider" data-target="sellClosingPct">
+              </div>
             </label>
           </div>
 
@@ -118,23 +168,38 @@
           <div class="grid two-col">
             <label class="field">
               <span>Maintenance/renovation (% of home value/yr)</span>
-              <input id="maintenancePct" type="number" min="0" max="10" step="0.1" value="1.0">
+              <div class="input-group">
+                <input id="maintenancePct" type="number" min="0" max="10" step="0.1" value="1.0">
+                <input type="range" min="0" max="6" step="0.1" value="1.0" class="slider" data-target="maintenancePct">
+              </div>
             </label>
             <label class="field">
               <span>Homeowner's insurance (% of home value/yr)</span>
-              <input id="homeInsurancePct" type="number" min="0" max="10" step="0.05" value="0.55">
+              <div class="input-group">
+                <input id="homeInsurancePct" type="number" min="0" max="10" step="0.05" value="0.55">
+                <input type="range" min="0" max="4" step="0.05" value="0.55" class="slider" data-target="homeInsurancePct">
+              </div>
             </label>
             <label class="field">
               <span>Extra monthly utilities ($)</span>
-              <input id="extraUtilitiesMonthly" type="number" min="0" step="10" value="100">
+              <div class="input-group">
+                <input id="extraUtilitiesMonthly" type="number" min="0" step="10" value="100">
+                <input type="range" min="0" max="2000" step="10" value="100" class="slider" data-target="extraUtilitiesMonthly">
+              </div>
             </label>
             <label class="field">
               <span>Monthly common/HOA fees ($)</span>
-              <input id="hoaMonthly" type="number" min="0" step="10" value="0">
+              <div class="input-group">
+                <input id="hoaMonthly" type="number" min="0" step="10" value="0">
+                <input type="range" min="0" max="8000" step="10" value="0" class="slider" data-target="hoaMonthly">
+              </div>
             </label>
             <label class="field">
               <span>Common fees deductible (%)</span>
-              <input id="hoaDeductiblePct" type="number" min="0" max="100" step="1" value="0">
+              <div class="input-group">
+                <input id="hoaDeductiblePct" type="number" min="0" max="100" step="1" value="0">
+                <input type="range" min="0" max="100" step="1" value="0" class="slider" data-target="hoaDeductiblePct">
+              </div>
             </label>
           </div>
 
@@ -142,39 +207,40 @@
           <div class="grid two-col">
             <label class="field">
               <span>Security deposit ($ first year)</span>
-              <input id="securityDepositInitial" type="number" min="0" step="50" value="2000">
+              <div class="input-group">
+                <input id="securityDepositInitial" type="number" min="0" step="50" value="2000">
+                <input type="range" min="0" max="12000" step="50" value="2000" class="slider" data-target="securityDepositInitial">
+              </div>
             </label>
             <label class="field">
               <span>Broker's fee (% of annual rent)</span>
-              <input id="brokersFeePct" type="number" min="0" max="50" step="1" value="0">
+              <div class="input-group">
+                <input id="brokersFeePct" type="number" min="0" max="50" step="1" value="0">
+                <input type="range" min="0" max="50" step="1" value="0" class="slider" data-target="brokersFeePct">
+              </div>
             </label>
             <label class="field">
               <span>Renter's insurance ($ first year)</span>
-              <input id="rentersInsuranceInitial" type="number" min="0" step="25" value="240">
+              <div class="input-group">
+                <input id="rentersInsuranceInitial" type="number" min="0" step="25" value="240">
+                <input type="range" min="0" max="1000" step="25" value="240" class="slider" data-target="rentersInsuranceInitial">
+              </div>
             </label>
             <label class="field">
               <span>Renter insurance growth (%/yr)</span>
-              <input id="rentersInsuranceGrowthPct" type="number" min="0" max="10" step="0.1" value="1">
+              <div class="input-group">
+                <input id="rentersInsuranceGrowthPct" type="number" min="0" max="10" step="0.1" value="1">
+                <input type="range" min="0" max="10" step="0.1" value="1" class="slider" data-target="rentersInsuranceGrowthPct">
+              </div>
             </label>
           </div>
         </details>
       </section>
 
       <section class="panel results">
-        <h2>Results</h2>
-        <div class="result-summary">
-          <div>
-            <div class="label">Total cost: Buy</div>
-            <div id="totalBuy" class="value">—</div>
-          </div>
-          <div>
-            <div class="label">Total cost: Rent</div>
-            <div id="totalRent" class="value">—</div>
-          </div>
-          <div>
-            <div class="label accent" id="winnerLabel">—</div>
-            <div id="difference" class="value accent">—</div>
-          </div>
+        <div class="results-header">
+          <div id="winnerLabel" class="headline accent">—</div>
+          <div id="difference" class="subhead accent">—</div>
         </div>
 
         <div class="breakdown">
@@ -188,7 +254,7 @@
     </main>
 
     <footer class="site-footer container">
-      <p>For educational purposes only. This tool simplifies many factors and is not financial advice.</p>
+      
     </footer>
 
     <script src="./app.js"></script>
