@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Rent vs Buy Calculator</title>
     <meta name="description" content="An original rent vs buy calculator to compare long-run financial outcomes.">
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./styles.css?v=2">
   </head>
   <body>
     <header class="site-header">
@@ -23,14 +23,14 @@
             <span>Home price (if buying)</span>
             <div class="input-group">
               <input id="homePrice" type="number" min="0" step="1000" value="500000">
-              <input type="range" min="100000" max="2000000" step="10000" value="500000" class="slider" data-target="homePrice">
+              <input type="range" min="0" max="100" step="0.1" value="50" class="slider" data-target="homePrice" data-nonlinear="homePrice">
             </div>
           </label>
           <label class="field">
             <span>Monthly rent (if renting)</span>
             <div class="input-group">
               <input id="monthlyRent" type="number" min="0" step="50" value="2000">
-              <input type="range" min="500" max="10000" step="50" value="2000" class="slider" data-target="monthlyRent">
+              <input type="range" min="0" max="100" step="0.1" value="50" class="slider" data-target="monthlyRent" data-nonlinear="monthlyRent">
             </div>
           </label>
           <label class="field">
@@ -74,8 +74,7 @@
           </label>
         </div>
 
-        <details class="advanced">
-          <summary>Advanced options</summary>
+        <h3>Advanced options</h3>
           <div class="grid two-col">
             <label class="field">
               <span>Home price growth (%/yr)</span>
@@ -226,15 +225,7 @@
                 <input type="range" min="0" max="1000" step="25" value="240" class="slider" data-target="rentersInsuranceInitial">
               </div>
             </label>
-            <label class="field">
-              <span>Renter insurance growth (%/yr)</span>
-              <div class="input-group">
-                <input id="rentersInsuranceGrowthPct" type="number" min="0" max="10" step="0.1" value="1">
-                <input type="range" min="0" max="10" step="0.1" value="1" class="slider" data-target="rentersInsuranceGrowthPct">
-              </div>
-            </label>
           </div>
-        </details>
       </section>
 
       <section class="panel results">
@@ -257,7 +248,7 @@
       
     </footer>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=2"></script>
   </body>
   </html>
 

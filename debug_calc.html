@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head><title>Net Worth Comparison</title></head>
+<body>
+<h1>Net Worth After 1 Year</h1>
+<div id="output"></div>
+<script>
+function pct(n){return n/100}
+
+function buildAmortization(principal, annualRatePct, years){
+  const r = pct(annualRatePct)/12;
+  const n = years*12;
+  const schedule = [];
+  let remaining = principal;
+  const m = r === 0 ? principal/n : principal * (r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+  for(let i=0;i<n;i++){
+    const interest = remaining * r;
+    const principalPaid = Math.min(m - interest, remaining);
+    remaining = Math.max(0, remaining - principalPaid);
+    schedule.push({month:i+1, payment:m, interest, principal:principalPaid, remaining});
+  }
+  return schedule;
+}
+
+const s = {
+  homePrice: 500000,
+  monthlyRent: 2000,
+  years: 1,
+  mortgageRate: 6.5,
+  downPaymentPct: 20,
+  mortgageYears: 30,
+  investmentReturnPct: 7,
+  buyClosingPct: 2,
+  sellClosingPct: 8,
+  maintenancePct: 1,
+  homeInsurancePct: 0.5,
+  extraUtilitiesMonthly: 100,
+  securityDepositInitial: 4000,
+  brokersFeePct: 15,
+  rentersInsuranceInitial: 200,
+  capitalGainsRatePct: 15,
+  homeGrowthPct: 3,
+};
+
+const downPayment = s.homePrice * pct(s.downPaymentPct);
+const loanAmount = s.homePrice - downPayment;
+const buyClosing = s.homePrice * pct(s.buyClosingPct);
+const amort = buildAmortization(loanAmount, s.mortgageRate, s.mortgageYears);
+
+// Calculate monthly costs
+let totalBuyMonthly = 0;
+let totalRentMonthly = 0;
+for(let m=0; m<12; m++){
+  const mortgagePayment = amort[m].payment;
+  const propertyTax = (s.homePrice * pct(s.propertyTaxRatePct)) / 12;
+  const maintenance = (s.homePrice * pct(s.maintenancePct)) / 12;
+  const insurance = (s.homePrice * pct(s.homeInsurancePct)) / 12;
+  const utilities = s.extraUtilitiesMonthly;
+  totalBuyMonthly += (mortgagePayment + propertyTax + maintenance + insurance + utilities);
+  totalRentMonthly += s.monthlyRent + s.rentersInsuranceInitial/12;
+}
+
+// Buy scenario: What do you end up with?
+const buyInitial = downPayment + buyClosing; // $110k
+const valueAfter1Year = s.homePrice * (1 + pct(s.homeGrowthPct));
+const sellCosts = valueAfter1Year * pct(s.sellClosingPct);
+const remainingPrincipal = amort[11].remaining;
+const netProceeds = valueAfter1Year - sellCosts - remainingPrincipal;
+const buyerNetWorth = netProceeds; // What you get back after selling
+
+// Rent scenario: What do you end up with?
+const rentInitial = s.securityDepositInitial + (s.monthlyRent * 12 * pct(s.brokersFeePct));
+
+// Renter invests the difference
+const monthlyRate = Math.pow(1 + pct(s.investmentReturnPct), 1/12) - 1;
+
+// Initial investment: what buyer paid that renter didn't
+const initialDiff = buyInitial - rentInitial;
+const initialInvested = initialDiff * Math.pow(1 + monthlyRate, 12);
+
+// Monthly savings: buyer pays more each month
+const buyMonthlyAvg = totalBuyMonthly / 12;
+const rentMonthlyAvg = totalRentMonthly / 12;
+const monthlySavings = buyMonthlyAvg - rentMonthlyAvg;
+
+// Invest monthly savings
+let monthlyInvestmentTotal = 0;
+for(let m=0; m<12; m++){
+  const monthsToGrow = 12 - m;
+  monthlyInvestmentTotal += monthlySavings * Math.pow(1 + monthlyRate, monthsToGrow);
+}
+
+// Renter gets back security deposit
+const grossPortfolio = initialInvested + monthlyInvestmentTotal + s.securityDepositInitial;
+
+// Calculate tax on investment gains
+const initialGain = initialInvested - initialDiff;
+const monthlyGain = monthlyInvestmentTotal - (monthlySavings * 12);
+const totalGains = initialGain + monthlyGain;
+const taxOnGains = totalGains * pct(s.capitalGainsRatePct);
+const renterNetWorth = grossPortfolio - taxOnGains;
+
+let html = '<h2>Buyer Net Worth:</h2>';
+html += `<p>Spent: $${buyInitial.toLocaleString()} initial + $${Math.round(totalBuyMonthly).toLocaleString()} total monthly</p>`;
+html += `<p>Got back: $${Math.round(netProceeds).toLocaleString()} from home sale</p>`;
+html += `<p><strong>Net worth: $${Math.round(buyerNetWorth).toLocaleString()}</strong></p>`;
+
+html += '<h2>Renter Net Worth:</h2>';
+html += `<p>Spent: $${rentInitial.toLocaleString()} initial + $${Math.round(totalRentMonthly).toLocaleString()} total monthly</p>`;
+html += `<p>Invested difference vs buyer:</p>`;
+html += `<p>- Initial: $${Math.round(initialDiff).toLocaleString()} grew to $${Math.round(initialInvested).toLocaleString()}</p>`;
+html += `<p>- Monthly: $${Math.round(monthlySavings).toLocaleString()}/mo × 12 = $${Math.round(monthlySavings * 12).toLocaleString()} grew to $${Math.round(monthlyInvestmentTotal).toLocaleString()}</p>`;
+html += `<p>- Security deposit returned: $${s.securityDepositInitial.toLocaleString()}</p>`;
+html += `<p>Gross portfolio: $${Math.round(grossPortfolio).toLocaleString()}</p>`;
+html += `<p>Investment gains: $${Math.round(totalGains).toLocaleString()}</p>`;
+html += `<p>Tax on gains (15%): -$${Math.round(taxOnGains).toLocaleString()}</p>`;
+html += `<p><strong>Net worth: $${Math.round(renterNetWorth).toLocaleString()}</strong></p>`;
+
+html += '<h2>Comparison:</h2>';
+const diff = renterNetWorth - buyerNetWorth;
+html += `<p><strong style="font-size: 20px;">Renting leaves you ${diff > 0 ? 'ahead' : 'behind'} by $${Math.round(Math.abs(diff)).toLocaleString()}</strong></p>`;
+html += `<p>(NYT says renting saves $58,000)</p>`;
+
+document.getElementById('output').innerHTML = html;
+</script>
+</body>
+</html>

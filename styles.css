@@ -7,6 +7,9 @@
   --good:#16a34a;
   --bad:#dc2626;
   --border:#e5e7eb;
+  /* Slider thumb dimensions */
+  --slider-thumb-w:14px;
+  --slider-thumb-h:18px;
 }
 
 *{box-sizing:border-box}
@@ -20,10 +23,12 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.
 .site-header .disclaimer{margin:0;color:var(--muted);font-size:14px}
 .site-header a{color:var(--accent);text-decoration:none}
 
-.layout{display:grid;grid-template-columns:640px minmax(0,1fr);gap:16px}
+.layout{display:grid;grid-template-columns:640px minmax(0,1fr);gap:16px;align-items:start}
+.panel.results{position:sticky;top:16px}
 @media (max-width: 900px){.layout{grid-template-columns:1fr}}
 
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;overflow:hidden}
+.panel.inputs{padding-left:24px;padding-right:24px}
 .panel h2{margin-top:0}
 .panel h3,.panel h4{margin-bottom:8px;margin-top:16px}
 
@@ -32,19 +37,67 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.
 
 .field{display:flex;flex-direction:column;gap:8px}
 .field span{font-size:14px;color:var(--muted)}
-.field input[type="number"],.field select{appearance:none;border:1px solid var(--border);background:#ffffff;color:var(--text);padding:10px 12px;border-radius:8px;outline:none}
-.field input[type="number"]:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(88,166,255,0.15)}
+.field input[type="number"],.field input[type="text"],.field select{appearance:none;border:0;background:transparent;color:var(--text);padding:0;outline:none;font-size:20px;font-weight:400}
+.field input[type="number"]:focus,.field input[type="text"]:focus,.field select:focus{outline:none}
 
 /* Input layout: number box on the left, slider on the right */
-.input-group{display:grid;grid-template-columns:200px 1fr;align-items:center;gap:12px}
-.input-group > input[type="number"]{width:100%}
+.input-group{display:grid;grid-template-columns:140px 1fr;grid-template-rows:auto auto auto;align-items:center;column-gap:12px;row-gap:0}
+.input-group > input[type="number"], .input-group > input[type="text"]{width:100%;grid-column:1;grid-row:1 / span 3}
 @media (max-width: 700px){.input-group{grid-template-columns:1fr}}
 
-input[type="range"].slider{appearance:none;width:100%;height:32px;border-radius:4px;background:linear-gradient(to right, #7c3aed 0%, #2563eb 100%);outline:none;position:relative}
-input[type="range"].slider::-webkit-slider-thumb{appearance:none;width:3px;height:44px;border-radius:2px;background:#ffffff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.1);border:2px solid #64748b}
-input[type="range"].slider::-moz-range-thumb{width:3px;height:44px;border-radius:2px;background:#ffffff;cursor:pointer;border:2px solid #64748b;box-shadow:0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.1)}
-input[type="range"].slider::-webkit-slider-thumb:hover{background:#f1f5f9;border-color:#475569}
-input[type="range"].slider::-moz-range-thumb:hover{background:#f1f5f9;border-color:#475569}
+/* Segmented gradient bar above the actual slider */
+.segmented-bar{grid-column:2;display:grid;grid-template-columns:repeat(40, 1fr);gap:0;height:26px;border-radius:0;background:#e5e7eb;overflow:hidden;margin-bottom:0;border:0}
+.segmented-bar .piece{background:#cbd5e1;box-shadow:inset -1px 0 0 rgba(255,255,255,0.95)}
+.segmented-bar .piece:last-child{box-shadow:none}
+.segmented-bar .piece.active{outline:2px solid #111827;outline-offset:-2px}
+
+/* Slider labels underneath */
+.slider-labels{grid-column:2;position:relative;margin-top:4px;font-size:12px;color:var(--muted);height:16px}
+.slider-labels span{position:absolute;transform:translateX(-50%)}
+
+/* The actual range slider sits under the segmented bar - wider than gradient */
+input[type="range"].slider{grid-column:2;appearance:none;width:calc(100% + 8px);height:8px;border-radius:999px;background:#e5e7eb;outline:none;position:relative;border:1px solid #cbd5e1;margin:0;display:block;margin-left:-4px}
+/* Explicit track styling for alignment */
+input[type="range"].slider::-webkit-slider-runnable-track{height:8px;background:#e5e7eb;border:1px solid #cbd5e1;border-radius:999px}
+input[type="range"].slider::-moz-range-track{height:8px;background:#e5e7eb;border:1px solid #cbd5e1;border-radius:999px}
+/* NYT-like marker thumb: white background with gray border, tag/bookmark shape pointing down */
+/* Using SVG background for proper border visibility */
+input[type="range"].slider::-webkit-slider-thumb{
+  appearance:none;
+  width:14px;
+  height:18px;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18"><path d="M 1.5 0 L 12.5 0 Q 14 0 14 1.5 L 14 12 L 7 16 L 0 12 L 0 1.5 Q 0 0 1.5 0 Z" fill="white" stroke="%23cbd5e1" stroke-width="1.2"/></svg>');
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  cursor:pointer;
+  border:none;
+  box-shadow:none;
+  margin-top:-5px;
+}
+input[type="range"].slider::-moz-range-thumb{
+  width:14px;
+  height:18px;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18"><path d="M 1.5 0 L 12.5 0 Q 14 0 14 1.5 L 14 12 L 7 16 L 0 12 L 0 1.5 Q 0 0 1.5 0 Z" fill="white" stroke="%23cbd5e1" stroke-width="1.2"/></svg>');
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  cursor:pointer;
+  border:none;
+  box-shadow:none;
+}
+input[type="range"].slider::-webkit-slider-thumb:hover{
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18"><path d="M 1.5 0 L 12.5 0 Q 14 0 14 1.5 L 14 12 L 7 16 L 0 12 L 0 1.5 Q 0 0 1.5 0 Z" fill="white" stroke="%23cbd5e1" stroke-width="1.2"/></svg>');
+}
+input[type="range"].slider::-moz-range-thumb:hover{
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18"><path d="M 1.5 0 L 12.5 0 Q 14 0 14 1.5 L 14 12 L 7 16 L 0 12 L 0 1.5 Q 0 0 1.5 0 Z" fill="white" stroke="%23cbd5e1" stroke-width="1.2"/></svg>');
+}
+input[type="range"].slider::-webkit-slider-thumb:active{
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18"><path d="M 1.5 0 L 12.5 0 Q 14 0 14 1.5 L 14 12 L 7 16 L 0 12 L 0 1.5 Q 0 0 1.5 0 Z" fill="white" stroke="%23cbd5e1" stroke-width="1.2"/></svg>');
+}
+input[type="range"].slider::-moz-range-thumb:active{
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18"><path d="M 1.5 0 L 12.5 0 Q 14 0 14 1.5 L 14 12 L 7 16 L 0 12 L 0 1.5 Q 0 0 1.5 0 Z" fill="white" stroke="%23cbd5e1" stroke-width="1.2"/></svg>');
+}
 
 details.advanced{margin-top:8px}
 details.advanced summary{cursor:pointer;color:var(--accent);font-weight:600;margin-bottom:8px}
@@ -70,7 +123,81 @@ details.advanced summary{cursor:pointer;color:var(--accent);font-weight:600;marg
 .site-footer{color:var(--muted);font-size:14px}
 
 .results-header{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;margin-bottom:12px}
-.results-header .headline{font-size:14px;font-weight:400;color:var(--accent)}
-.results-header .subhead{font-size:30px;font-weight:800;line-height:1.2;color:var(--accent);white-space:normal;word-break:break-word}
+.results-header .headline{font-size:14px;font-weight:400;color:var(--muted)}
+.results-header .subhead{font-size:30px;font-weight:800;line-height:1.2;white-space:normal;word-break:break-word}
+.results-header .subhead.buying{color:#9558f6}
+.results-header .subhead.renting{color:#4281f5}
+.results-header .subhead.equal{color:#4b5563}
 
 
+/* Mobile layout - completely different structure */
+@media (max-width: 768px){
+  .layout{grid-template-columns:1fr;padding:0}
+  .panel.inputs{border:0;border-radius:0;padding:0;background:transparent}
+  .panel.results{position:fixed !important;top:auto !important}
+  
+  /* Stack field vertically: label on top, input below, then full-width bars */
+  .field{margin:0 0 24px 0;padding:0 16px;--field-h-padding:16px}
+  .field span{display:block;margin-bottom:8px;padding:0}
+  
+  .input-group{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    position:relative;
+  }
+  
+  /* Input above bars */
+  .input-group > input[type="number"],
+  .input-group > input[type="text"],
+  .input-group > select{
+    width:100%;
+    margin:0 0 12px 0;
+    order:1;
+  }
+  
+  /* Bars span full width with equal side margins, accounting for scrollbar */
+  .segmented-bar{
+    order:2;
+    width:calc(100% - 32px);
+    position:relative;
+    left:0;
+    margin-left:16px;
+    margin-right:16px;
+    margin-bottom:0;
+    border-radius:0;
+  }
+  
+  input[type="range"].slider{
+    order:3;
+    width:calc(100% - 24px);
+    position:relative;
+    left:0;
+    margin-left:12px;
+    margin-right:12px;
+    margin-top:0;
+  }
+  
+  .slider-labels{
+    order:4;
+    width:calc(100% - 32px);
+    margin-left:16px;
+    margin-right:16px;
+  }
+  
+  /* Fixed bottom results */
+  .panel.results{
+    position:fixed;
+    bottom:12px;
+    left:12px;
+    right:12px;
+    z-index:100;
+    border-radius:12px;
+    box-shadow:0 -4px 12px rgba(0,0,0,0.15);
+    max-height:40vh;
+    overflow-y:auto;
+  }
+  .results .breakdown{display:none}
+  .results h3{display:none}
+  body{padding-bottom:220px}
+}
