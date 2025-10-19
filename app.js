@@ -215,6 +215,10 @@ function valueToSlider(slider, value){
 }
 
 function readInputs(){
+  const filingStatusFromSelect = document.getElementById('filingStatus')?.value;
+  const filingStatusFromRadio = document.querySelector('input[name="filingStatus"]:checked')?.value;
+  const filingStatus = filingStatusFromSelect || filingStatusFromRadio || 'single';
+
   return {
     homePrice: parseNumber(document.getElementById('homePrice').value),
     monthlyRent: parseNumber(document.getElementById('monthlyRent').value),
@@ -227,7 +231,7 @@ function readInputs(){
     rentGrowthPct: parseNumber(document.getElementById('rentGrowthPct').value),
     investmentReturnPct: parseNumber(document.getElementById('investmentReturnPct').value),
     inflationPct: parseNumber(document.getElementById('inflationPct').value),
-    filingStatus: document.getElementById('filingStatus').value,
+    filingStatus,
     propertyTaxRatePct: parseNumber(document.getElementById('propertyTaxRatePct').value),
     marginalTaxRatePct: parseNumber(document.getElementById('marginalTaxRatePct').value),
     otherItemizedDeductions: parseNumber(document.getElementById('otherItemizedDeductions').value),
@@ -683,7 +687,7 @@ function updateAllSliderGradients(){
 }
 
 function hookInputs(){
-  const inputs = document.querySelectorAll('input[type="number"], select');
+  const inputs = document.querySelectorAll('input[type="number"], select, input[type="radio"][name="filingStatus"]');
   inputs.forEach(el=>{
     el.addEventListener('input', ()=>{
       computeBuyVsRent();
@@ -754,6 +758,16 @@ function hookInputs(){
     slider._pieces = pieces;
     slider._labels = labels;
     slider._segmentedInit = true;
+  });
+  // Hook up filingStatus radios to state
+  const filingRadios = document.querySelectorAll('input[type="radio"][name="filingStatus"]');
+  filingRadios.forEach(radio=>{
+    radio.addEventListener('change', ()=>{
+      const select = document.getElementById('filingStatus');
+      if(select) select.value = radio.value;
+      computeBuyVsRent();
+      updateAllSliderGradients();
+    });
   });
   sliders.forEach(slider=>{
     const targetId = slider.getAttribute('data-target');

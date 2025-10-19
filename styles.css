@@ -129,6 +129,14 @@ details.advanced summary{cursor:pointer;color:var(--accent);font-weight:600;marg
 .results-header .subhead.renting{color:#4281f5}
 .results-header .subhead.equal{color:#4b5563}
 
+/* Filing status radio group */
+.radio-group.filing{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.radio-group.filing .radio-option{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;color:var(--text)}
+.radio-group.filing input[type="radio"]{appearance:none;width:20px;height:20px;border:2px solid #cbd5e1;border-radius:50%;display:inline-grid;place-content:center}
+.radio-group.filing input[type="radio"]::before{content:"";width:12px;height:12px;border-radius:50%;transform:scale(0);transition:120ms transform ease-in-out;background:#2563eb}
+.radio-group.filing input[type="radio"]:checked::before{transform:scale(1)}
+.radio-group.filing input[type="radio"]:checked{border-color:#2563eb}
+
 
 /* Mobile layout - completely different structure */
 @media (max-width: 768px){

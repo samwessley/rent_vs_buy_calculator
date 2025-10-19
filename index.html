@@ -109,11 +109,17 @@
           <h4>Taxes</h4>
           <div class="grid two-col">
             <label class="field">
-              <span>Filing</span>
-              <select id="filingStatus">
-                <option value="single">Individual return</option>
-                <option value="joint">Joint return</option>
-              </select>
+              <span>How you file your taxes:</span>
+              <div class="radio-group filing">
+                <label class="radio-option">
+                  <input type="radio" name="filingStatus" value="single" checked>
+                  <span>Individual return</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="filingStatus" value="joint">
+                  <span>Joint return</span>
+                </label>
+              </div>
             </label>
             <label class="field">
               <span>Property tax rate (% of home value)</span>
